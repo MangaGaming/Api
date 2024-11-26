@@ -1,0 +1,30 @@
+plugins {
+    id 'java'
+}
+
+group 'com.votreorganisation'
+version '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+    maven {
+        url 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/'
+    }
+}
+
+dependencies {
+    compileOnly 'org.spigotmc:spigot-api:1.8.8-R0.1-SNAPSHOT' // Utilisez spigot-api
+}
+
+jar {
+    // Configuration du nom du fichier JAR
+    archiveBaseName.set('Api')
+}
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8' // Définit l'encodage à UTF-8
+}
+
+tasks.withType(Test) {
+    useJUnitPlatform()
+}
