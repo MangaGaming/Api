@@ -9,6 +9,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import com.mguhc.UhcAPI;
@@ -27,11 +29,11 @@ public class UhcGame {
 
     public UhcGame() {
         this.currentPhase = new GamePhase("Waiting"); // Initialiser la phase à "Waiting"
-        this.players = UhcAPI.getInstance().getPlayerManager().getPlayers();
     }
 
     public void startGame() {
     	roleManager = UhcAPI.getInstance().getRoleManager();
+        players = UhcAPI.getInstance().getPlayerManager().getPlayers();
     	if(roleManager.getActiveRoles().size() != UhcAPI.getInstance().getPlayerManager().getPlayers().size()) {
     		Bukkit.broadcastMessage("[UHC] Il vous faut autant de joueur que de rôles pour lancer la partie");
     		return;
@@ -45,6 +47,11 @@ public class UhcGame {
             currentPhase.addPlayer(uhcPlayer);
             Player player = uhcPlayer.getPlayer();
             player.setGameMode(GameMode.SURVIVAL);
+            player.getInventory().clear();
+            for(PotionEffect potion : player.getActivePotionEffects()) {
+            	PotionEffectType potiontype = potion.getType();
+            	player.removePotionEffect(potiontype);
+            }
 
             // Téléportation à un endroit aléatoire autour de (0, 0)
             teleportToRandomLocation(player);
@@ -89,12 +96,18 @@ public class UhcGame {
                                         player.teleport(new Location(player.getWorld(), 0, 80, 0)); // Téléportation à une position spécifique
                                     }
                                 }
-                            }
-                            Bukkit.getWorld("world").getWorldBorder().setSize(borderSize);                		}
+                            }        		
+                		}
                 	}
                     timePassed++;
                 }
             }.runTaskTimer(UhcAPI.getInstance(), 0, 20); // Exécute toutes les secondes
+        }
+        if(borderSize < 300 || borderSize == 0) {
+        	Bukkit.getWorld("world").getWorldBorder().setSize(300);
+        }
+        else {
+        	Bukkit.getWorld("world").getWorldBorder().setSize(borderSize);
         }
         Bukkit.getServer().getPluginManager().callEvent(new UhcStartEvent());
     }

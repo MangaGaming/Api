@@ -1,6 +1,7 @@
 package com.mguhc.listeners;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +30,8 @@ import com.mguhc.game.UhcGame;
 import com.mguhc.player.PlayerManager;
 import com.mguhc.roles.RoleManager;
 import com.mguhc.roles.UhcRole;
+import com.mguhc.scenario.Scenario;
+import com.mguhc.scenario.ScenarioManager;
 
 public class PlayerListener implements Listener {
     
@@ -94,34 +97,44 @@ public class PlayerListener implements Listener {
         // Créer un inventaire de configuration de 54 slots
         Inventory configInventory = Bukkit.createInventory(null, 54, ChatColor.GREEN + "Configuration");
 
-     // Créer l'item pour lancer la partie
+        // Créer l'item pour lancer la partie
         ItemStack startGameItem = new ItemStack(Material.WOOL, 1, (short) 5); // 5 correspond à la couleur verte
-        ItemMeta startGameMeta = startGameItem.getItemMeta(); // Obtenir le ItemMeta
-        if (startGameMeta != null) { // Vérifier si ItemMeta n'est pas null
-            startGameMeta.setDisplayName(ChatColor.GREEN + "Lancer la Partie"); // Définir le nom affiché
-            startGameItem.setItemMeta(startGameMeta); // Réaffecter le ItemMeta modifié à l'ItemStack
+        ItemMeta startGameMeta = startGameItem.getItemMeta();
+        if (startGameMeta != null) {
+            startGameMeta.setDisplayName(ChatColor.GREEN + "Lancer la Partie");
+            startGameItem.setItemMeta(startGameMeta);
         }
 
         // Créer l'item pour le mode de jeu
         ItemStack gameModeItem = new ItemStack(Material.NETHER_STAR);
-        ItemMeta gameModeMeta = gameModeItem.getItemMeta(); // Obtenir le ItemMeta
-        if (gameModeMeta != null) { // Vérifier si ItemMeta n'est pas null
-            gameModeMeta.setDisplayName(ChatColor.RED + "Mode de jeu"); // Définir le nom affiché
-            gameModeItem.setItemMeta(gameModeMeta); // Réaffecter le ItemMeta modifié à l'ItemStack
+        ItemMeta gameModeMeta = gameModeItem.getItemMeta();
+        if (gameModeMeta != null) {
+            gameModeMeta.setDisplayName(ChatColor.RED + "Mode de jeu");
+            gameModeItem.setItemMeta(gameModeMeta);
         }
 
         // Créer l'item pour la bordure
         ItemStack borderItem = new ItemStack(Material.BEACON);
-        ItemMeta borderMeta = borderItem.getItemMeta(); // Obtenir le ItemMeta
-        if (borderMeta != null) { // Vérifier si ItemMeta n'est pas null
-            borderMeta.setDisplayName(ChatColor.BLUE + "Bordure"); // Définir le nom affiché
-            borderItem.setItemMeta(borderMeta); // Réaffecter le ItemMeta modifié à l'ItemStack
+        ItemMeta borderMeta = borderItem.getItemMeta();
+        if (borderMeta != null) {
+            borderMeta.setDisplayName(ChatColor.BLUE + "Bordure");
+            borderItem.setItemMeta(borderMeta);
         }
 
-        // Ajouter l'item de laine verte à la première position de l'inventaire
+        // Créer l'item pour ouvrir le menu des scénarios
+        ItemStack scenarioItem = new ItemStack(Material.BOOK);
+        ItemMeta scenarioMeta = scenarioItem.getItemMeta();
+        if (scenarioMeta != null) {
+            scenarioMeta.setDisplayName(ChatColor.GOLD + "Scénarios");
+            scenarioMeta.setLore(Collections.singletonList(ChatColor.GRAY + "Cliquez pour gérer les scénarios"));
+            scenarioItem.setItemMeta(scenarioMeta);
+        }
+
+        // Ajouter les items à l'inventaire
         configInventory.setItem(4, startGameItem);
         configInventory.setItem(31, gameModeItem);
         configInventory.setItem(13, borderItem);
+        configInventory.setItem(22, scenarioItem); // Position pour l'item Scénarios
 
         // Ouvrir l'inventaire pour le joueur
         player.openInventory(configInventory);
@@ -152,7 +165,31 @@ public class PlayerListener implements Listener {
                 clickedItem.getItemMeta().getDisplayName().equals(ChatColor.BLUE + "Bordure")) {
                 openBorderInventory(player);
             }
+            if (clickedItem != null && clickedItem.getType() == Material.BOOK && 
+                    clickedItem.getItemMeta().getDisplayName().equals(ChatColor.GOLD + "Scénarios")) {
+                    openScenarioInventory(player);
+            }
         }
+    }
+    
+    private void openScenarioInventory(Player player) {
+        Inventory scenarioInventory = Bukkit.createInventory(null, 27, ChatColor.GREEN + "Gérer les Scénarios");
+
+        // Ajouter chaque scénario à l'inventaire
+        for (Scenario scenario : UhcAPI.getInstance().getScenarioManager().getScenarios()) {
+            ItemStack scenarioItem = new ItemStack(Material.PAPER);
+            ItemMeta meta = scenarioItem.getItemMeta();
+            if (meta != null) {
+                meta.setDisplayName(scenario.getName());
+                List<String> lore = new ArrayList<>();
+                lore.add(ChatColor.GRAY + "Cliquez pour " + (UhcAPI.getInstance().getScenarioManager().isScenarioActive(scenario.getName()) ? "désactiver" : "activer"));
+                scenarioItem.setItemMeta(meta);
+            }
+            scenarioInventory.addItem(scenarioItem);
+        }
+
+        // Ouvrir l'inventaire pour le joueur
+        player.openInventory(scenarioInventory);
     }
 
     private void openBorderInventory(Player player) {
@@ -285,6 +322,30 @@ public class PlayerListener implements Listener {
                     // Mettre à jour l'item dans l'inventaire
                     updateRoleItem(clickedItem, clickedRole);
                 }
+            }
+        }
+    }
+    
+    @EventHandler
+    public void OnScenarioClick(InventoryClickEvent event) {
+    	if (event.getView().getTitle().equals(ChatColor.GREEN + "Gérer les Scénarios")) {
+            event.setCancelled(true); // Annuler l'événement pour éviter de déplacer les items
+            
+            ScenarioManager scenarioManager = UhcAPI.getInstance().getScenarioManager();
+            Player player = (Player) event.getWhoClicked();
+            ItemStack clickedItem = event.getCurrentItem();
+
+            // Gérer les clics sur les items des scénarios
+            if (clickedItem != null && clickedItem.getType() == Material.PAPER) {
+                String scenarioName = clickedItem.getItemMeta().getDisplayName();
+                if (scenarioManager.isScenarioActive(scenarioName)) {
+                	scenarioManager.deactivateScenario(scenarioName);
+                    player.sendMessage(ChatColor.RED + scenarioName + " désactivé !");
+                } else {
+                	scenarioManager.activateScenario(scenarioName);
+                    player.sendMessage(ChatColor.GREEN + scenarioName + " activé !");
+                }
+                openScenarioInventory(player); // Réouvrir le menu des scénarios pour mettre à jour l'état
             }
         }
     }

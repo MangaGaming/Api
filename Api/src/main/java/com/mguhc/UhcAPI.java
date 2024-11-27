@@ -13,14 +13,15 @@ import com.mguhc.listeners.PlayerListener;
 import com.mguhc.player.PlayerManager;
 import com.mguhc.roles.RoleManager;
 import com.mguhc.roles.UhcRole;
+import com.mguhc.scenario.ScenarioManager;
 
 public class UhcAPI extends JavaPlugin implements Listener {
     private PlayerManager playermanager;
     private UhcGame uhcgame;
     private RoleManager roleManager;
     private static UhcAPI instance;
-    
     private HashMap<String, String> roles;
+	private ScenarioManager scenariomanager;
 
     @Override
     public void onEnable() {
@@ -28,6 +29,7 @@ public class UhcAPI extends JavaPlugin implements Listener {
         playermanager = new PlayerManager();
         uhcgame = new UhcGame();
         roleManager = new RoleManager();
+        scenariomanager = new ScenarioManager();
         
         // Enregistrer l'écouteur
         Bukkit.getPluginManager().registerEvents(this, this);
@@ -65,5 +67,9 @@ public class UhcAPI extends JavaPlugin implements Listener {
     
     public RoleManager getRoleManager() {
         return roleManager;
+    }
+    
+    public ScenarioManager getScenarioManager() {
+    	return scenariomanager;
     }
 }

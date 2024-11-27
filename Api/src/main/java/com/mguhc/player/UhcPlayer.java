@@ -2,6 +2,9 @@ package com.mguhc.player;
 
 import org.bukkit.entity.Player;
 
+import com.mguhc.UhcAPI;
+import com.mguhc.roles.UhcRole;
+
 public class UhcPlayer {
     private Player player;
     private boolean isAlive;
@@ -32,5 +35,15 @@ public class UhcPlayer {
 
     public void setHealth(int health) {
         this.health = health;
+    }
+    
+    public UhcRole getRole() {
+    	UhcRole role = UhcAPI.getInstance().getRoleManager().getRole(this);
+    	if(role != null) {
+    		return role;
+    	}
+    	else {
+    		return null;
+    	}
     }
 }
