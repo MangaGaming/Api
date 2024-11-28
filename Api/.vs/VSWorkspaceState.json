@@ -1,12 +1,16 @@
 {
   "ExpandedNodes": [
     "",
+    "\\bin\\default",
+    "\\bin\\main",
+    "\\bin\\main\\com",
     "\\src",
     "\\src\\main",
     "\\src\\main\\java",
     "\\src\\main\\java\\com",
-    "\\src\\main\\java\\com\\mguhc"
+    "\\src\\main\\java\\com\\mguhc",
+    "\\src\\main\\java\\com\\mguhc\\scenario"
   ],
-  "SelectedNode": "\\src\\main\\java\\com\\mguhc\\UhcAPI.java",
+  "SelectedNode": "\\src\\main\\java\\com\\mguhc\\scenario\\Scenario.java",
   "PreviewInSolutionExplorer": false
 }

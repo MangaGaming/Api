@@ -25,7 +25,10 @@ public class UhcGame {
     private int timePassed;
     private int borderTimer;
     private int borderSize;
+	private boolean ismettup = false;
+    private UhcRole assignedRole;
     private Map<Player, UhcPlayer> players;
+
 
     public UhcGame() {
         this.currentPhase = new GamePhase("Waiting"); // Initialiser la phase à "Waiting"
@@ -52,57 +55,72 @@ public class UhcGame {
             	PotionEffectType potiontype = potion.getType();
             	player.removePotionEffect(potiontype);
             }
-
             // Téléportation à un endroit aléatoire autour de (0, 0)
             teleportToRandomLocation(player);
         }
 
         // Attribuer des rôles aux joueurs à partir du RoleManager
         List<UhcRole> activeRoles = roleManager.getActiveRoles(); // Récupérer les rôles valides
-        List<UhcRole> assignedRoles = new ArrayList<>(); // Pour suivre les rôles assignés
 
         for (Map.Entry<Player, UhcPlayer> entry : players.entrySet()) {
             UhcPlayer player = entry.getValue();
-            UhcRole assignedRole;
+            List<UhcRole> assignedRoles = new ArrayList<>(); // Pour suivre les rôles assignés
+            if(!ismettup) {
+            	new BukkitRunnable() {
+					
+					@Override
+					public void run() {
+		                // Assigner un rôle aléatoire parmi les rôles valides
+		                do {
+		                    assignedRole = activeRoles.get((int) (Math.random() * activeRoles.size()));
+		                } while (assignedRoles.contains(assignedRole)); // Éviter les doublons
 
-            // Assigner un rôle aléatoire parmi les rôles valides
-            do {
-                assignedRole = activeRoles.get((int) (Math.random() * activeRoles.size()));
-            } while (assignedRoles.contains(assignedRole)); // Éviter les doublons
+		                assignedRoles.add(assignedRole);
+		                roleManager.assignRole(player, assignedRole);
+					}
+				}.runTaskLater(UhcAPI.getInstance(), 20*60);
 
-            assignedRoles.add(assignedRole);
-            roleManager.assignRole(player, assignedRole);
+            }
             
+            else {
+                // Assigner un rôle aléatoire parmi les rôles valides
+                do {
+                    assignedRole = activeRoles.get((int) (Math.random() * activeRoles.size()));
+                } while (assignedRoles.contains(assignedRole)); // Éviter les doublons
 
-            // Démarrer le timer pour le temps de jeu
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                	if (timePassed == borderTimer) {
-                		if (timePassed == borderTimer) {
-                            // Vérifier s'il y a des joueurs dans un rayon de 600 blocs autour de (0, 0)
-                            List<Player> playersInRange = new ArrayList<>();
+                assignedRoles.add(assignedRole);
+                roleManager.assignRole(player, assignedRole);
+            }
+        }
+        // Démarrer le timer pour le temps de jeu
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+            	if (timePassed == borderTimer) {
+            		if (timePassed == borderTimer) {
+                        // Vérifier s'il y a des joueurs dans un rayon de 600 blocs autour de (0, 0)
+                        List<Player> playersInRange = new ArrayList<>();
+                        for (Player player : Bukkit.getOnlinePlayers()) {
+                            if (player.getLocation().distance(new Location(player.getWorld(), 0, 0, 0)) <= 600) {
+                                playersInRange.add(player);
+                            }
+                        }
+
+                        // Si aucun joueur n'est trouvé dans la zone
+                        if (playersInRange.isEmpty()) {
+                            // Téléporter les joueurs les plus proches de (0, 0)
                             for (Player player : Bukkit.getOnlinePlayers()) {
-                                if (player.getLocation().distance(new Location(player.getWorld(), 0, 0, 0)) <= 600) {
-                                    playersInRange.add(player);
+                                if (!playersInRange.contains(player)) {
+                                    player.teleport(new Location(player.getWorld(), 0, 80, 0)); // Téléportation à une position spécifique
                                 }
                             }
-
-                            // Si aucun joueur n'est trouvé dans la zone
-                            if (playersInRange.isEmpty()) {
-                                // Téléporter les joueurs les plus proches de (0, 0)
-                                for (Player player : Bukkit.getOnlinePlayers()) {
-                                    if (!playersInRange.contains(player)) {
-                                        player.teleport(new Location(player.getWorld(), 0, 80, 0)); // Téléportation à une position spécifique
-                                    }
-                                }
-                            }        		
-                		}
-                	}
-                    timePassed++;
-                }
-            }.runTaskTimer(UhcAPI.getInstance(), 0, 20); // Exécute toutes les secondes
-        }
+                        }        		
+            		}
+            	}
+                timePassed++;
+            }
+        }.runTaskTimer(UhcAPI.getInstance(), 0, 20); // Exécute toutes les secondes
+        
         if(borderSize < 300 || borderSize == 0) {
         	Bukkit.getWorld("world").getWorldBorder().setSize(300);
         }
@@ -136,7 +154,7 @@ public class UhcGame {
     }
 
     public int getTimePassed() {
-        return timePassed; // Correction du nom de la méthode pour respecter la convention Java
+        return timePassed;
     }
     
     public void setborderTimer(int n) {
@@ -145,5 +163,9 @@ public class UhcGame {
     
     public void setborderSize(int n) {
     	borderSize = n;
+    }
+    
+    public void setMettup(boolean b) {
+    	ismettup = b;
     }
 }
