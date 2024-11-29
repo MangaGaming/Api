@@ -168,4 +168,8 @@ public class UhcGame {
     public void setMettup(boolean b) {
     	ismettup = b;
     }
+    
+    public boolean getMettup() {
+    	return ismettup;
+    }
 }

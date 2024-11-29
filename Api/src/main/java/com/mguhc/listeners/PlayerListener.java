@@ -96,6 +96,12 @@ public class PlayerListener implements Listener {
     private void openConfigInventory(Player player) {
         // Créer un inventaire de configuration de 54 slots
         Inventory configInventory = Bukkit.createInventory(null, 54, ChatColor.GREEN + "Configuration");
+        
+        // Créer l'item pour mettre en mode meetup
+        ItemStack meetupItem = new ItemStack(Material.DIAMOND_SWORD, 1);
+        ItemMeta meetupMeta = meetupItem.getItemMeta();
+        meetupMeta.setDisplayName(ChatColor.GREEN + "Mode Mettup");
+        meetupItem.setItemMeta(meetupMeta);
 
         // Créer l'item pour lancer la partie
         ItemStack startGameItem = new ItemStack(Material.WOOL, 1, (short) 5); // 5 correspond à la couleur verte
@@ -131,6 +137,7 @@ public class PlayerListener implements Listener {
         }
 
         // Ajouter les items à l'inventaire
+        configInventory.setItem(3, meetupItem);
         configInventory.setItem(4, startGameItem);
         configInventory.setItem(31, gameModeItem);
         configInventory.setItem(13, borderItem);
@@ -148,6 +155,18 @@ public class PlayerListener implements Listener {
 
             Player player = (Player) event.getWhoClicked();
             ItemStack clickedItem = event.getCurrentItem();
+            
+            if(clickedItem != null && clickedItem.getType() == Material.DIAMOND_SWORD && 
+               clickedItem.getItemMeta().getDisplayName().equals(ChatColor.GREEN + "Mode Mettup")) {
+            	if (uhcgame.getMettup() == true) {
+            		uhcgame.setMettup(false);
+            		player.sendMessage("Meetup Désactivé");
+            	}
+            	if (uhcgame.getMettup() == false) {
+            		uhcgame.setMettup(true);
+            		player.sendMessage("Meetup Activé");
+            	}
+            }
 
             // Vérifier si l'item cliqué est celui pour lancer la partie
             if (clickedItem != null && clickedItem.getType() == Material.WOOL && 
