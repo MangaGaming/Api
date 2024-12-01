@@ -94,14 +94,16 @@ public class PlayerListener implements Listener {
     }
 
     private void openConfigInventory(Player player) {
-        // Créer un inventaire de configuration de 54 slots
-        Inventory configInventory = Bukkit.createInventory(null, 54, ChatColor.GREEN + "Configuration");
+        // Créer un inventaire de configuration de 36 slots
+        Inventory configInventory = Bukkit.createInventory(null, 36, ChatColor.GREEN + "Configuration");
         
         // Créer l'item pour mettre en mode meetup
         ItemStack meetupItem = new ItemStack(Material.DIAMOND_SWORD, 1);
         ItemMeta meetupMeta = meetupItem.getItemMeta();
-        meetupMeta.setDisplayName(ChatColor.GREEN + "Mode Mettup");
-        meetupItem.setItemMeta(meetupMeta);
+        if(meetupMeta != null) {
+            meetupMeta.setDisplayName(ChatColor.GREEN + "Mode Mettup");
+            meetupItem.setItemMeta(meetupMeta);
+        }
 
         // Créer l'item pour lancer la partie
         ItemStack startGameItem = new ItemStack(Material.WOOL, 1, (short) 5); // 5 correspond à la couleur verte
@@ -135,13 +137,34 @@ public class PlayerListener implements Listener {
             scenarioMeta.setLore(Collections.singletonList(ChatColor.GRAY + "Cliquez pour gérer les scénarios"));
             scenarioItem.setItemMeta(scenarioMeta);
         }
+        
+        // Créer l'item pour les hosts
+        ItemStack hostItem = new ItemStack(Material.FEATHER);
+        ItemMeta hostMeta = hostItem.getItemMeta();
+        if (hostMeta != null) {
+        	hostMeta.setDisplayName(ChatColor.GOLD + "Host");
+        	hostItem.setItemMeta(hostMeta);
+        }
+        
+        // Créer l'item pour les mods
+        ItemStack modItem = new ItemStack(Material.ANVIL);
+        ItemMeta modMeta = modItem.getItemMeta();
+        if(modMeta != null) {
+        	modMeta.setDisplayName(ChatColor.BLUE + "Mod");
+        	modItem.setItemMeta(modMeta);
+        }
 
         // Ajouter les items à l'inventaire
         configInventory.setItem(3, meetupItem);
         configInventory.setItem(4, startGameItem);
-        configInventory.setItem(31, gameModeItem);
         configInventory.setItem(13, borderItem);
-        configInventory.setItem(22, scenarioItem); // Position pour l'item Scénarios
+        configInventory.setItem(22, scenarioItem);
+        configInventory.setItem(31, gameModeItem);
+        
+        // Host & Mod
+        configInventory.setItem(30, hostItem);
+        configInventory.setItem(32, modItem);
+        
 
         // Ouvrir l'inventaire pour le joueur
         player.openInventory(configInventory);
@@ -162,7 +185,7 @@ public class PlayerListener implements Listener {
             		uhcgame.setMettup(false);
             		player.sendMessage("Meetup Désactivé");
             	}
-            	if (uhcgame.getMettup() == false) {
+            	else if (uhcgame.getMettup() == false) {
             		uhcgame.setMettup(true);
             		player.sendMessage("Meetup Activé");
             	}
@@ -188,10 +211,69 @@ public class PlayerListener implements Listener {
                     clickedItem.getItemMeta().getDisplayName().equals(ChatColor.GOLD + "Scénarios")) {
                     openScenarioInventory(player);
             }
+            
+            if (clickedItem != null && clickedItem.getType() == Material.FEATHER &&
+            		clickedItem.getItemMeta().getDisplayName().equals(ChatColor.GOLD + "Host"));
+            openHostInventory(player);
         }
     }
     
-    private void openScenarioInventory(Player player) {
+    private void openHostInventory(Player player) {
+        // Créer un inventaire de 54 slots
+        Inventory hostInventory = Bukkit.createInventory(null, 54, ChatColor.GREEN + "Sélectionner un Host");
+
+        // Récupérer tous les joueurs en ligne
+        for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
+            // Créer un item pour chaque joueur
+            ItemStack playerItem = new ItemStack(Material.SKULL_ITEM, 1, (short) 3); // Utiliser une tête de joueur
+            ItemMeta meta = playerItem.getItemMeta();
+            if (meta != null) {
+                meta.setDisplayName(onlinePlayer.getName()); // Nom du joueur
+                List<String> lore = new ArrayList<>();
+                // Vérifier si le joueur a déjà la permission
+                if (onlinePlayer.hasPermission("api.host")) {
+                    lore.add(ChatColor.RED + "Déjà Host");
+                } else {
+                    lore.add(ChatColor.GREEN + "Cliquez pour donner le statut de Host");
+                }
+                meta.setLore(lore);
+                playerItem.setItemMeta(meta);
+            }
+            // Ajouter l'item à l'inventaire
+            hostInventory.addItem(playerItem);
+        }
+
+        // Ouvrir l'inventaire pour le joueur
+        player.openInventory(hostInventory);
+    }
+
+    // Écouter l'événement de clic dans l'inventaire des hosts
+    @EventHandler
+    public void onHostInventoryClick(InventoryClickEvent event) {
+        if (event.getView().getTitle().equals(ChatColor.GREEN + "Sélectionner un Host")) {
+            event.setCancelled(true); // Annuler l'événement pour éviter de déplacer les items
+
+            Player player = (Player) event.getWhoClicked();
+            ItemStack clickedItem = event.getCurrentItem();
+
+            // Vérifier si l'item cliqué est un item de joueur
+            if (clickedItem != null && clickedItem.getType() == Material.SKULL_ITEM) {
+                String playerName = clickedItem.getItemMeta().getDisplayName();
+                Player selectedPlayer = Bukkit.getPlayer(playerName);
+
+                if (selectedPlayer != null) {
+                    // Vérifier si le joueur a déjà la permission
+                    if (selectedPlayer.hasPermission("api.host")) {
+                        player.sendMessage(ChatColor.RED + selectedPlayer.getName() + " a déjà le statut de Host.");
+                    } else {
+                        // Ici, vous devrez utiliser l'API de votre plugin de gestion des permissions pour donner la permission au joueur. Par exemple, si vous utilisez LuckPerms, vous pouvez faire comme suit :
+                    }
+                }
+            }
+        }
+    }
+
+	private void openScenarioInventory(Player player) {
         Inventory scenarioInventory = Bukkit.createInventory(null, 27, ChatColor.GREEN + "Gérer les Scénarios");
 
         // Ajouter chaque scénario à l'inventaire

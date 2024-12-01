@@ -20,7 +20,7 @@ public class RoleManager {
 
     public void assignRole(UhcPlayer player, UhcRole role) {
         playerRoles.put(player, role);
-        player.getPlayer().sendMessage("Vous avez été assigné au rôle : " + role.getName());
+        player.getPlayer().sendMessage(role.getDescription());
     }
 
     public UhcRole getRole(UhcPlayer player) {

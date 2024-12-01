@@ -2,18 +2,22 @@ plugins {
     id 'java'
 }
 
-group 'com.votreorganisation'
+group 'com.mguhc'
 version '1.0-SNAPSHOT'
 
 repositories {
-    mavenCentral()
     maven {
         url 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/'
     }
+    maven {
+        url 'https://repo.extendedclip.com/content/repositories/placeholderapi/'
+    }
+    mavenCentral()
 }
 
 dependencies {
-    compileOnly 'org.spigotmc:spigot-api:1.8.8-R0.1-SNAPSHOT' // Utilisez spigot-api
+    compileOnly 'org.spigotmc:spigot-api:1.8.8-R0.1-SNAPSHOT' // Assurez-vous que cette version est correcte
+    compileOnly 'net.luckperms:api:5.4'
 }
 
 jar {
@@ -22,7 +26,7 @@ jar {
 }
 
 tasks.withType(JavaCompile) {
-    options.encoding = 'UTF-8' // Définit l'encodage à UTF-8
+    options.encoding = 'UTF-8'
 }
 
 tasks.withType(Test) {
