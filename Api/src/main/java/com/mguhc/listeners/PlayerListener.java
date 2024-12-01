@@ -33,13 +33,21 @@ import com.mguhc.roles.UhcRole;
 import com.mguhc.scenario.Scenario;
 import com.mguhc.scenario.ScenarioManager;
 
+import net.luckperms.api.LuckPerms;
+import net.luckperms.api.LuckPermsProvider;
+import net.luckperms.api.model.user.User;
+import net.luckperms.api.node.Node;
+
 public class PlayerListener implements Listener {
     
     private UhcGame uhcgame;
+    private LuckPerms luckPerms;
+    
     private Map<Player, String> playerInputState = new HashMap<>();
     
     public PlayerListener(UhcGame uhcgame) {
         this.uhcgame = uhcgame;
+        this.luckPerms = LuckPermsProvider.get();
     }
 
     @EventHandler
@@ -266,7 +274,18 @@ public class PlayerListener implements Listener {
                     if (selectedPlayer.hasPermission("api.host")) {
                         player.sendMessage(ChatColor.RED + selectedPlayer.getName() + " a déjà le statut de Host.");
                     } else {
-                        // Ici, vous devrez utiliser l'API de votre plugin de gestion des permissions pour donner la permission au joueur. Par exemple, si vous utilisez LuckPerms, vous pouvez faire comme suit :
+                        User user = luckPerms.getUserManager().getUser (selectedPlayer.getUniqueId());
+
+                        if (user != null) {
+                            // Ajouter la permission api.host
+                            user.data().add(Node.builder("api.host").build());
+                            luckPerms.getUserManager().saveUser (user); // Sauvegarder l'utilisateur
+
+                            player.sendMessage(ChatColor.GREEN + selectedPlayer.getName() + " a maintenant le statut de Host.");
+                            selectedPlayer.sendMessage(ChatColor.GREEN + "Vous avez été promu au statut de Host.");
+                        } else {
+                            player.sendMessage(ChatColor.RED + "Erreur : Impossible de récupérer les données de permission pour " + selectedPlayer.getName());
+                        }
                     }
                 }
             }

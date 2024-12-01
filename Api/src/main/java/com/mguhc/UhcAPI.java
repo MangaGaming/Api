@@ -7,7 +7,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import com.mguhc .commands.AssignRoleCommand;
 import com.mguhc.game.UhcGame;
 import com.mguhc.listeners.PlayerListener;
 import com.mguhc.player.PlayerManager;
@@ -34,9 +33,6 @@ public class UhcAPI extends JavaPlugin implements Listener {
         // Enregistrer l'écouteur
         Bukkit.getPluginManager().registerEvents(this, this);
         Bukkit.getPluginManager().registerEvents(new PlayerListener(uhcgame), this);
-        
-        // Enregistrer les commands
-        getCommand("giverole").setExecutor(new AssignRoleCommand());
         
         roles = new HashMap<>();
         roles.put("Warrior", "A strong fighter");

@@ -2,6 +2,3 @@ name: UhcAPI
 version: 1.0
 main: com.mguhc.UhcAPI
 depend: [LuckPerms]
-commands:
-  giverole:
-    description: "Donne un rôle à un joueur"
