@@ -83,6 +83,12 @@ public class PlayerListener implements Listener {
                 player.getInventory().addItem(netherStar); // Donner l'étoile du Nether au joueur
                 player.updateInventory();
             }
+            
+            if(player.hasPermission("api.mod")) {
+            	if(!player.isOp()) {
+                	giveModItems(player);
+            	}
+            }
         }
     }
     
@@ -221,12 +227,46 @@ public class PlayerListener implements Listener {
             }
             
             if (clickedItem != null && clickedItem.getType() == Material.FEATHER &&
-            		clickedItem.getItemMeta().getDisplayName().equals(ChatColor.GOLD + "Host"));
-            openHostInventory(player);
+            		clickedItem.getItemMeta().getDisplayName().equals(ChatColor.GOLD + "Host")){
+                openHostInventory(player);
+            }
+            
+            if(clickedItem != null && clickedItem.getType() == Material.ANVIL &&
+            		clickedItem.getItemMeta().getDisplayName().equals(ChatColor.BLUE + "Mod")) {
+            	openModInventory(player);
+            }
         }
     }
     
-    private void openHostInventory(Player player) {
+    private void openModInventory(Player player) {
+        // Créer un inventaire de 54 slots
+        Inventory modInventory = Bukkit.createInventory(null, 54, ChatColor.BLUE + "Sélectionner les Modérateurs");
+
+        // Récupérer tous les joueurs en ligne
+        for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
+            // Créer un item pour chaque joueur
+            ItemStack playerItem = new ItemStack(Material.SKULL_ITEM, 1, (short) 3); // Utiliser une tête de joueur
+            ItemMeta meta = playerItem.getItemMeta();
+            if (meta != null) {
+                meta.setDisplayName(onlinePlayer.getName()); // Nom du joueur
+                List<String> lore = new ArrayList<>();
+                // Vérifier si le joueur a déjà la permission
+                if (onlinePlayer.hasPermission("api.mod")) {
+                    lore.add(ChatColor.RED + "Déjà Mod");
+                } else {
+                    lore.add(ChatColor.GREEN + "Cliquez pour lui donner les permissions de modérateurs");
+                }
+                meta.setLore(lore);
+                playerItem.setItemMeta(meta);
+            }
+            // Ajouter l'item à l'inventaire
+            modInventory.addItem(playerItem);
+        }
+        // Ouvrir l'inventaire pour le joueur
+        player.openInventory(modInventory);
+	}
+
+	private void openHostInventory(Player player) {
         // Créer un inventaire de 54 slots
         Inventory hostInventory = Bukkit.createInventory(null, 54, ChatColor.GREEN + "Sélectionner un Host");
 
@@ -253,43 +293,6 @@ public class PlayerListener implements Listener {
 
         // Ouvrir l'inventaire pour le joueur
         player.openInventory(hostInventory);
-    }
-
-    // Écouter l'événement de clic dans l'inventaire des hosts
-    @EventHandler
-    public void onHostInventoryClick(InventoryClickEvent event) {
-        if (event.getView().getTitle().equals(ChatColor.GREEN + "Sélectionner un Host")) {
-            event.setCancelled(true); // Annuler l'événement pour éviter de déplacer les items
-
-            Player player = (Player) event.getWhoClicked();
-            ItemStack clickedItem = event.getCurrentItem();
-
-            // Vérifier si l'item cliqué est un item de joueur
-            if (clickedItem != null && clickedItem.getType() == Material.SKULL_ITEM) {
-                String playerName = clickedItem.getItemMeta().getDisplayName();
-                Player selectedPlayer = Bukkit.getPlayer(playerName);
-
-                if (selectedPlayer != null) {
-                    // Vérifier si le joueur a déjà la permission
-                    if (selectedPlayer.hasPermission("api.host")) {
-                        player.sendMessage(ChatColor.RED + selectedPlayer.getName() + " a déjà le statut de Host.");
-                    } else {
-                        User user = luckPerms.getUserManager().getUser (selectedPlayer.getUniqueId());
-
-                        if (user != null) {
-                            // Ajouter la permission api.host
-                            user.data().add(Node.builder("api.host").build());
-                            luckPerms.getUserManager().saveUser (user); // Sauvegarder l'utilisateur
-
-                            player.sendMessage(ChatColor.GREEN + selectedPlayer.getName() + " a maintenant le statut de Host.");
-                            selectedPlayer.sendMessage(ChatColor.GREEN + "Vous avez été promu au statut de Host.");
-                        } else {
-                            player.sendMessage(ChatColor.RED + "Erreur : Impossible de récupérer les données de permission pour " + selectedPlayer.getName());
-                        }
-                    }
-                }
-            }
-        }
     }
 
 	private void openScenarioInventory(Player player) {
@@ -344,7 +347,191 @@ public class PlayerListener implements Listener {
         player.openInventory(borderInventory);
     }
 
-    // Écouter l'événement de clic dans l'inventaire de la bordure
+	private void openGameModeInventory(Player player) {
+        Inventory inventory = Bukkit.createInventory(null, 27, ChatColor.GREEN + "Configurer les Rôles");
+
+        for (UhcRole role : UhcAPI.getInstance().getRoleManager().getValidRoles()) {
+            ItemStack roleItem = new ItemStack(Material.PAPER); // Utilisez un item approprié
+            ItemMeta meta = roleItem.getItemMeta();
+            if (meta != null) {
+                meta.setDisplayName(role.getName()); // Assurez-vous que UhcRole a une méthode getName()
+                List<String> lore = new ArrayList<>();
+                lore.add(ChatColor.GRAY + "Cliquez pour " + (UhcAPI.getInstance().getRoleManager().getActiveRoles().contains(role) ? "désactiver" : "activer"));
+                meta.setLore(lore);
+                roleItem.setItemMeta(meta);
+            }
+            inventory.addItem(roleItem);
+        }
+        player.openInventory(inventory);
+	}
+	
+	@EventHandler
+    public void onHostInventoryClick(InventoryClickEvent event) {
+        if (event.getView().getTitle().equals(ChatColor.GREEN + "Sélectionner un Host")) {
+            event.setCancelled(true); // Annuler l'événement pour éviter de déplacer les items
+
+            Player player = (Player) event.getWhoClicked();
+            ItemStack clickedItem = event.getCurrentItem();
+
+            // Vérifier si l'item cliqué est un item de joueur
+            if (clickedItem != null && clickedItem.getType() == Material.SKULL_ITEM) {
+                String playerName = clickedItem.getItemMeta().getDisplayName();
+                Player selectedPlayer = Bukkit.getPlayer(playerName);
+
+                if (selectedPlayer != null) {
+                    // Vérifier si le joueur a déjà la permission
+                    if (selectedPlayer.hasPermission("api.host")) {
+                        player.sendMessage(ChatColor.RED + selectedPlayer.getName() + " a déjà le statut de Host.");
+                    } else {
+                        User user = luckPerms.getUserManager().getUser (selectedPlayer.getUniqueId());
+
+                        if (user != null) {
+                            // Ajouter la permission api.host
+                            user.data().add(Node.builder("api.host").build());
+                            luckPerms.getUserManager().saveUser (user); // Sauvegarder l'utilisateur
+
+                            player.sendMessage(ChatColor.GREEN + selectedPlayer.getName() + " a maintenant le statut de Host.");
+                            selectedPlayer.sendMessage(ChatColor.GREEN + "Vous avez été promu au statut de Host.");
+                            
+                            ItemStack netherStar = new ItemStack(Material.NETHER_STAR);
+                            ItemMeta meta = netherStar.getItemMeta();
+                            meta.setDisplayName(ChatColor.RED + "Config");
+                            netherStar.setItemMeta(meta);
+                            selectedPlayer.getInventory().addItem(netherStar); // Donner l'étoile du Nether au joueur
+                            selectedPlayer.updateInventory();
+                        } else {
+                            player.sendMessage(ChatColor.RED + "Erreur : Impossible de récupérer les données de permission pour " + selectedPlayer.getName());
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+	public void onModInventoryClick(InventoryClickEvent event) {
+	    if (event.getView().getTitle().equals(ChatColor.BLUE + "Sélectionner les Modérateurs")) {
+	        event.setCancelled(true); // Annuler l'événement pour éviter de déplacer les items
+
+	        Player player = (Player) event.getWhoClicked();
+	        ItemStack clickedItem = event.getCurrentItem();
+
+	        // Vérifier si l'item cliqué est un item de joueur
+	        if (clickedItem != null && clickedItem.getType() == Material.SKULL_ITEM) {
+	            String playerName = clickedItem.getItemMeta().getDisplayName();
+	            Player selectedPlayer = Bukkit.getPlayer(playerName);
+
+	            if (selectedPlayer != null) {
+	                // Vérifier si le joueur a déjà la permission
+	                if (selectedPlayer.hasPermission("api.mod")) {
+	                    player.sendMessage(ChatColor.RED + selectedPlayer.getName() + " a déjà le statut de Mod.");
+	                } else {
+	                    User user = luckPerms.getUserManager().getUser (selectedPlayer.getUniqueId());
+
+	                    if (user != null) {
+	                        // Ajouter la permission api.mod
+	                        user.data().add(Node.builder("api.mod").build());
+	                        luckPerms.getUserManager().saveUser (user); // Sauvegarder l'utilisateur
+
+	                        player.sendMessage(ChatColor.GREEN + selectedPlayer.getName() + " a maintenant le statut de Mod.");
+	                        selectedPlayer.sendMessage(ChatColor.GREEN + "Vous avez été promu au statut de Mod.");
+	                        
+	                        selectedPlayer.getInventory().clear();
+
+	                        // Créer et donner les items
+	                        giveModItems(selectedPlayer);
+	                    } else {
+	                        player.sendMessage(ChatColor.RED + "Erreur : Impossible de récupérer les données de permission pour " + selectedPlayer.getName());
+	                    }
+	                }
+	            }
+	        }
+	    }
+	}
+
+	private void giveModItems(Player player) {
+	    // Créer une Nether Star nommée "Vanish"
+	    ItemStack vanishItem = new ItemStack(Material.NETHER_STAR);
+	    ItemMeta vanishMeta = vanishItem.getItemMeta();
+	    if (vanishMeta != null) {
+	        vanishMeta.setDisplayName(ChatColor.GREEN + "Vanish");
+	        vanishItem.setItemMeta(vanishMeta);
+	    }
+
+	    // Créer une boussole nommée "Tp"
+	    ItemStack tpItem = new ItemStack(Material.COMPASS);
+	    ItemMeta tpMeta = tpItem.getItemMeta();
+	    if (tpMeta != null) {
+	        tpMeta.setDisplayName(ChatColor.GOLD + "Tp");
+	        tpItem.setItemMeta(tpMeta);
+	    }
+
+	    // Créer une épée nommée "Warn"
+	    ItemStack warnItem = new ItemStack(Material.DIAMOND_SWORD);
+	    ItemMeta warnMeta = warnItem.getItemMeta();
+	    if (warnMeta != null) {
+	        warnMeta.setDisplayName(ChatColor.RED + "Warn");
+	        warnItem.setItemMeta(warnMeta);
+	    }
+
+	    // Donner les items au joueur
+	    player.getInventory().addItem(vanishItem, tpItem, warnItem);
+	    player.updateInventory(); // Mettre à jour l'inventaire du joueur
+	}
+
+	
+	@EventHandler
+    public void onGameModeInventoryClick(InventoryClickEvent event) {
+        if (event.getView().getTitle().equals(ChatColor.GREEN + "Configurer les Rôles")) {
+            event.setCancelled(true); // Annuler l'événement pour éviter de déplacer les items
+
+            Player player = (Player) event.getWhoClicked();
+            ItemStack clickedItem = event.getCurrentItem();
+            List<UhcRole> activeRoles = UhcAPI.getInstance().getRoleManager().getActiveRoles();
+
+            if (clickedItem != null && clickedItem.getType() == Material.PAPER) {
+                String roleName = clickedItem.getItemMeta().getDisplayName();
+                UhcRole clickedRole = findRoleByName(roleName); // Méthode pour trouver le rôle par son nom
+
+                if (clickedRole != null) {
+                    if (activeRoles.contains(clickedRole)) {
+                        activeRoles.remove(clickedRole);
+                        player.sendMessage(ChatColor.RED + "Rôle " + roleName + " désactivé.");
+                    } else {
+                        activeRoles.add(clickedRole);
+                        player.sendMessage(ChatColor.GREEN + "Rôle " + roleName + " activé.");
+                    }
+
+                    // Mettre à jour l'item dans l'inventaire
+                    updateRoleItem(clickedItem, clickedRole);
+                }
+            }
+        }
+    }
+    
+    @EventHandler
+    public void OnScenariInventoryoClick(InventoryClickEvent event) {
+    	if (event.getView().getTitle().equals(ChatColor.GREEN + "Gérer les Scénarios")) {
+            event.setCancelled(true); // Annuler l'événement pour éviter de déplacer les items
+            
+            ScenarioManager scenarioManager = UhcAPI.getInstance().getScenarioManager();
+            Player player = (Player) event.getWhoClicked();
+            ItemStack clickedItem = event.getCurrentItem();
+
+            // Gérer les clics sur les items des scénarios
+            if (clickedItem != null && clickedItem.getType() == Material.PAPER) {
+                String scenarioName = clickedItem.getItemMeta().getDisplayName();
+                if (scenarioManager.isScenarioActive(scenarioName)) {
+                	scenarioManager.deactivateScenario(scenarioName);
+                    player.sendMessage(ChatColor.RED + scenarioName + " désactivé !");
+                } else {
+                	scenarioManager.activateScenario(scenarioName);
+                    player.sendMessage(ChatColor.GREEN + scenarioName + " activé !");
+                }
+                openScenarioInventory(player); // Réouvrir le menu des scénarios pour mettre à jour l'état
+            }
+        }
+    }
+    
     @EventHandler
     public void onBorderInventoryClick(InventoryClickEvent event) {
         if (event.getView().getTitle().equals(ChatColor.GREEN + "Configurer la Bordure")) {
@@ -396,77 +583,6 @@ public class PlayerListener implements Listener {
                 player.sendMessage(ChatColor.RED + "Veuillez entrer un nombre valide pour le timer de la bordure.");
             }
             event.setCancelled(true); // Annuler l'événement pour éviter d'afficher le message dans le chat
-        }
-    }
-
-	private void openGameModeInventory(Player player) {
-        Inventory inventory = Bukkit.createInventory(null, 27, ChatColor.GREEN + "Configurer les Rôles");
-
-        for (UhcRole role : UhcAPI.getInstance().getRoleManager().getValidRoles()) {
-            ItemStack roleItem = new ItemStack(Material.PAPER); // Utilisez un item approprié
-            ItemMeta meta = roleItem.getItemMeta();
-            if (meta != null) {
-                meta.setDisplayName(role.getName()); // Assurez-vous que UhcRole a une méthode getName()
-                List<String> lore = new ArrayList<>();
-                lore.add(ChatColor.GRAY + "Cliquez pour " + (UhcAPI.getInstance().getRoleManager().getActiveRoles().contains(role) ? "désactiver" : "activer"));
-                meta.setLore(lore);
-                roleItem.setItemMeta(meta);
-            }
-            inventory.addItem(roleItem);
-        }
-        player.openInventory(inventory);
-	}
-	
-    @EventHandler
-    public void onGameModeInventoryClick(InventoryClickEvent event) {
-        if (event.getView().getTitle().equals(ChatColor.GREEN + "Configurer les Rôles")) {
-            event.setCancelled(true); // Annuler l'événement pour éviter de déplacer les items
-
-            Player player = (Player) event.getWhoClicked();
-            ItemStack clickedItem = event.getCurrentItem();
-            List<UhcRole> activeRoles = UhcAPI.getInstance().getRoleManager().getActiveRoles();
-
-            if (clickedItem != null && clickedItem.getType() == Material.PAPER) {
-                String roleName = clickedItem.getItemMeta().getDisplayName();
-                UhcRole clickedRole = findRoleByName(roleName); // Méthode pour trouver le rôle par son nom
-
-                if (clickedRole != null) {
-                    if (activeRoles.contains(clickedRole)) {
-                        activeRoles.remove(clickedRole);
-                        player.sendMessage(ChatColor.RED + "Rôle " + roleName + " désactivé.");
-                    } else {
-                        activeRoles.add(clickedRole);
-                        player.sendMessage(ChatColor.GREEN + "Rôle " + roleName + " activé.");
-                    }
-
-                    // Mettre à jour l'item dans l'inventaire
-                    updateRoleItem(clickedItem, clickedRole);
-                }
-            }
-        }
-    }
-    
-    @EventHandler
-    public void OnScenarioClick(InventoryClickEvent event) {
-    	if (event.getView().getTitle().equals(ChatColor.GREEN + "Gérer les Scénarios")) {
-            event.setCancelled(true); // Annuler l'événement pour éviter de déplacer les items
-            
-            ScenarioManager scenarioManager = UhcAPI.getInstance().getScenarioManager();
-            Player player = (Player) event.getWhoClicked();
-            ItemStack clickedItem = event.getCurrentItem();
-
-            // Gérer les clics sur les items des scénarios
-            if (clickedItem != null && clickedItem.getType() == Material.PAPER) {
-                String scenarioName = clickedItem.getItemMeta().getDisplayName();
-                if (scenarioManager.isScenarioActive(scenarioName)) {
-                	scenarioManager.deactivateScenario(scenarioName);
-                    player.sendMessage(ChatColor.RED + scenarioName + " désactivé !");
-                } else {
-                	scenarioManager.activateScenario(scenarioName);
-                    player.sendMessage(ChatColor.GREEN + scenarioName + " activé !");
-                }
-                openScenarioInventory(player); // Réouvrir le menu des scénarios pour mettre à jour l'état
-            }
         }
     }
 
