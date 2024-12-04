@@ -48,7 +48,8 @@ public class OreInInventory extends Scenario implements Listener {
         // Si un minerai a été miné, donner l'item au joueur
         if (itemStack != null) {
             event.getPlayer().getInventory().addItem(itemStack);
-            event.setCancelled(true); // Annuler l'événement pour empêcher le drop normal
+            event.setCancelled(true);
+            event.getBlock().setType(Material.AIR);
         }
     }
 }

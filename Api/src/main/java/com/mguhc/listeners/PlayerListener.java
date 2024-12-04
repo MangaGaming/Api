@@ -42,7 +42,6 @@ public class PlayerListener implements Listener {
     
     private UhcGame uhcgame;
     private LuckPerms luckPerms;
-    
     private Map<Player, String> playerInputState = new HashMap<>();
     
     public PlayerListener(UhcGame uhcgame) {
@@ -184,9 +183,8 @@ public class PlayerListener implements Listener {
         player.openInventory(configInventory);
     }
 
-    // Écouter l'événement de clic dans l'inventaire
     @EventHandler
-    public void onConfigInventoryClick(InventoryClickEvent event) {
+    private void onConfigInventoryClick(InventoryClickEvent event) {
         if (event.getView().getTitle().equals(ChatColor.GREEN + "Configuration")) {
             event.setCancelled(true); // Annuler l'événement pour éviter de déplacer les items
 
@@ -366,7 +364,7 @@ public class PlayerListener implements Listener {
 	}
 	
 	@EventHandler
-    public void onHostInventoryClick(InventoryClickEvent event) {
+    private void onHostInventoryClick(InventoryClickEvent event) {
         if (event.getView().getTitle().equals(ChatColor.GREEN + "Sélectionner un Host")) {
             event.setCancelled(true); // Annuler l'événement pour éviter de déplacer les items
 
@@ -379,13 +377,16 @@ public class PlayerListener implements Listener {
                 Player selectedPlayer = Bukkit.getPlayer(playerName);
 
                 if (selectedPlayer != null) {
-                    // Vérifier si le joueur a déjà la permission
+                	User user = luckPerms.getUserManager().getUser (selectedPlayer.getUniqueId());
                     if (selectedPlayer.hasPermission("api.host")) {
-                        player.sendMessage(ChatColor.RED + selectedPlayer.getName() + " a déjà le statut de Host.");
+                    	// Retirer la permission api.mod
+                        user.data().remove(Node.builder("api.host").build());
+                        luckPerms.getUserManager().saveUser (user); // Sauvegarder l'utilisateur
+
+                        player.sendMessage(ChatColor.RED + selectedPlayer.getName() + " n'est plus Host.");
+                        selectedPlayer.sendMessage(ChatColor.RED + "Vous avez été retiré du statut de Host.");
                         
                     } else {
-                        User user = luckPerms.getUserManager().getUser (selectedPlayer.getUniqueId());
-
                         if (user != null) {
                             // Ajouter la permission api.host
                             user.data().add(Node.builder("api.host").build());
@@ -410,7 +411,7 @@ public class PlayerListener implements Listener {
     }
 	
 	@EventHandler
-	public void onModInventoryClick(InventoryClickEvent event) {
+	private void onModInventoryClick(InventoryClickEvent event) {
 	    if (event.getView().getTitle().equals(ChatColor.BLUE + "Sélectionner les Modérateurs")) {
 	        event.setCancelled(true); // Annuler l'événement pour éviter de déplacer les items
 
@@ -441,6 +442,7 @@ public class PlayerListener implements Listener {
 
 	                        player.sendMessage(ChatColor.GREEN + selectedPlayer.getName() + " a maintenant le statut de Mod.");
 	                        selectedPlayer.sendMessage(ChatColor.GREEN + "Vous avez été promu au statut de Mod.");
+	                        giveModItems(selectedPlayer);
 	                    }
 	                } else {
 	                    player.sendMessage(ChatColor.RED + "Erreur : Impossible de récupérer les données de permission pour " + selectedPlayer.getName());
@@ -482,7 +484,7 @@ public class PlayerListener implements Listener {
 	}
 
 	@EventHandler
-    public void onGameModeInventoryClick(InventoryClickEvent event) {
+    private void onGameModeInventoryClick(InventoryClickEvent event) {
         if (event.getView().getTitle().equals(ChatColor.GREEN + "Configurer les Rôles")) {
             event.setCancelled(true); // Annuler l'événement pour éviter de déplacer les items
 
@@ -511,7 +513,7 @@ public class PlayerListener implements Listener {
     }
     
     @EventHandler
-    public void OnScenariInventoryoClick(InventoryClickEvent event) {
+    private void OnScenariInventoryoClick(InventoryClickEvent event) {
     	if (event.getView().getTitle().equals(ChatColor.GREEN + "Gérer les Scénarios")) {
             event.setCancelled(true); // Annuler l'événement pour éviter de déplacer les items
             
@@ -535,7 +537,7 @@ public class PlayerListener implements Listener {
     }
     
     @EventHandler
-    public void onBorderInventoryClick(InventoryClickEvent event) {
+    private void onBorderInventoryClick(InventoryClickEvent event) {
         if (event.getView().getTitle().equals(ChatColor.GREEN + "Configurer la Bordure")) {
             event.setCancelled(true); // Annuler l'événement pour éviter de déplacer les items
 
@@ -557,7 +559,7 @@ public class PlayerListener implements Listener {
     }
     
     @EventHandler
-    public void onPlayerChat(AsyncPlayerChatEvent event) {
+    private void onPlayerChat(AsyncPlayerChatEvent event) {
         Player player = event.getPlayer();
         String message = event.getMessage();
 

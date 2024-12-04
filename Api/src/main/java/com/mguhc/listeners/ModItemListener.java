@@ -28,6 +28,9 @@ public class ModItemListener implements Listener {
         ItemStack item = event.getItem();
         Player player = event.getPlayer();
         Action action = event.getAction();
+        if(item == null || !item.hasItemMeta() || !item.getItemMeta().hasDisplayName()) {
+        	return;
+        }
         if(item.getItemMeta().getDisplayName().equals(ChatColor.GREEN + "Vanish")) {
             if(player.hasPotionEffect(PotionEffectType.INVISIBILITY)) {
                 player.sendMessage(ChatColor.RED + "Vous avez désactivé la Vanish");
@@ -41,7 +44,7 @@ public class ModItemListener implements Listener {
         if(item.getItemMeta().getDisplayName().equals(ChatColor.GOLD + "Tp")) {
             openTpInventory(player);
         }
-        if(item.getItemMeta().getDisplayName().equals(ChatColor.stripColor("Warn")) && (action == Action.RIGHT_CLICK_AIR || action == Action.RIGHT_CLICK_BLOCK)) {
+        if(item.getItemMeta().getDisplayName().equals(ChatColor.RED + "Warn") && (action == Action.RIGHT_CLICK_AIR || action == Action.RIGHT_CLICK_BLOCK)) {
             openWarnInventory(player);
         }
     }
@@ -99,7 +102,7 @@ public class ModItemListener implements Listener {
             event.setCancelled(true);
             Player player = (Player) event.getWhoClicked();
             ItemStack item = event.getCurrentItem();
-            if(item.getType() == Material.SKULL) {
+            if(item.getType() == Material.SKULL_ITEM) {
                 String name = item.getItemMeta().getDisplayName();
                 Player clickedPlayer = Bukkit.getPlayer(name);
                 player.teleport(clickedPlayer);
@@ -110,9 +113,10 @@ public class ModItemListener implements Listener {
             event.setCancelled(true);
             Player player = (Player) event.getWhoClicked();
             ItemStack item = event.getCurrentItem();
-            if(item.getType() == Material.SKULL) {
+            if(item.getType() == Material.SKULL_ITEM) {
                 String name = item.getItemMeta().getDisplayName();
                 selectedPlayer = Bukkit.getPlayer(name); // Stocker le joueur sélectionné
+                player.closeInventory();
                 openSanctionInventory(player);
             }
         }
