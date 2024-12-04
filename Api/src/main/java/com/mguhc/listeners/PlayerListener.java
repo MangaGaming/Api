@@ -407,7 +407,8 @@ public class PlayerListener implements Listener {
             }
         }
     }
-
+	
+	@EventHandler
 	public void onModInventoryClick(InventoryClickEvent event) {
 	    if (event.getView().getTitle().equals(ChatColor.BLUE + "Sélectionner les Modérateurs")) {
 	        event.setCancelled(true); // Annuler l'événement pour éviter de déplacer les items
@@ -476,9 +477,9 @@ public class PlayerListener implements Listener {
 	    // Donner les items au joueur
 	    player.getInventory().addItem(vanishItem, tpItem, warnItem);
 	    player.updateInventory(); // Mettre à jour l'inventaire du joueur
+	    player.setGameMode(GameMode.CREATIVE);
 	}
 
-	
 	@EventHandler
     public void onGameModeInventoryClick(InventoryClickEvent event) {
         if (event.getView().getTitle().equals(ChatColor.GREEN + "Configurer les Rôles")) {

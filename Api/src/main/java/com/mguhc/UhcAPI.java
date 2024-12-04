@@ -8,6 +8,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import com.mguhc.game.UhcGame;
+import com.mguhc.listeners.ModItemListener;
 import com.mguhc.listeners.PlayerListener;
 import com.mguhc.player.PlayerManager;
 import com.mguhc.roles.RoleManager;
@@ -33,6 +34,7 @@ public class UhcAPI extends JavaPlugin implements Listener {
         // Enregistrer l'écouteur
         Bukkit.getPluginManager().registerEvents(this, this);
         Bukkit.getPluginManager().registerEvents(new PlayerListener(uhcgame), this);
+        Bukkit.getPluginManager().registerEvents(new ModItemListener(), this);
         
         roles = new HashMap<>();
         roles.put("Warrior", "A strong fighter");
