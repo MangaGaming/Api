@@ -382,6 +382,7 @@ public class PlayerListener implements Listener {
                     // Vérifier si le joueur a déjà la permission
                     if (selectedPlayer.hasPermission("api.host")) {
                         player.sendMessage(ChatColor.RED + selectedPlayer.getName() + " a déjà le statut de Host.");
+                        
                     } else {
                         User user = luckPerms.getUserManager().getUser (selectedPlayer.getUniqueId());
 
@@ -422,27 +423,27 @@ public class PlayerListener implements Listener {
 	            Player selectedPlayer = Bukkit.getPlayer(playerName);
 
 	            if (selectedPlayer != null) {
-	                // Vérifier si le joueur a déjà la permission
-	                if (selectedPlayer.hasPermission("api.mod")) {
-	                    player.sendMessage(ChatColor.RED + selectedPlayer.getName() + " a déjà le statut de Mod.");
-	                } else {
-	                    User user = luckPerms.getUserManager().getUser (selectedPlayer.getUniqueId());
+	                User user = luckPerms.getUserManager().getUser (selectedPlayer.getUniqueId());
 
-	                    if (user != null) {
+	                if (user != null) {
+	                    // Vérifier si le joueur a déjà la permission
+	                    if (selectedPlayer.hasPermission("api.mod")) {
+	                        // Retirer la permission api.mod
+	                        user.data().remove(Node.builder("api.mod").build());
+	                        luckPerms.getUserManager().saveUser (user); // Sauvegarder l'utilisateur
+
+	                        player.sendMessage(ChatColor.RED + selectedPlayer.getName() + " n'est plus Mod.");
+	                        selectedPlayer.sendMessage(ChatColor.RED + "Vous avez été retiré du statut de Mod.");
+	                    } else {
 	                        // Ajouter la permission api.mod
 	                        user.data().add(Node.builder("api.mod").build());
 	                        luckPerms.getUserManager().saveUser (user); // Sauvegarder l'utilisateur
 
 	                        player.sendMessage(ChatColor.GREEN + selectedPlayer.getName() + " a maintenant le statut de Mod.");
 	                        selectedPlayer.sendMessage(ChatColor.GREEN + "Vous avez été promu au statut de Mod.");
-	                        
-	                        selectedPlayer.getInventory().clear();
-
-	                        // Créer et donner les items
-	                        giveModItems(selectedPlayer);
-	                    } else {
-	                        player.sendMessage(ChatColor.RED + "Erreur : Impossible de récupérer les données de permission pour " + selectedPlayer.getName());
 	                    }
+	                } else {
+	                    player.sendMessage(ChatColor.RED + "Erreur : Impossible de récupérer les données de permission pour " + selectedPlayer.getName());
 	                }
 	            }
 	        }

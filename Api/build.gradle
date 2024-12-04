@@ -6,18 +6,14 @@ group 'com.mguhc'
 version '1.0-SNAPSHOT'
 
 repositories {
-    maven {
-        url 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/'
-    }
-    maven {
-        url 'https://repo.extendedclip.com/content/repositories/placeholderapi/'
-    }
+    maven { url = 'https://maven.enginehub.org/repo/' }
     mavenCentral()
 }
 
 dependencies {
     compileOnly 'org.spigotmc:spigot-api:1.8.8-R0.1-SNAPSHOT' // Assurez-vous que cette version est correcte
     compileOnly 'net.luckperms:api:5.4'
+	compileOnly 'com.sk89q.worldedit:worldedit-bukkit:6.0.0-SNAPSHOT'
 }
 
 jar {

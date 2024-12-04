@@ -19,33 +19,35 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
 public class ModItemListener implements Listener {
-	
-	@EventHandler
-	private void OnInteract(PlayerInteractEvent event) {
-		ItemStack item = event.getItem();
-		Player player = event.getPlayer();
-		player.sendMessage(player.getName() + "avez itéragie avec le " + item.getItemMeta().getDisplayName());
-		Action action = event.getAction();
-		if(item.getItemMeta().getDisplayName().equals(ChatColor.GREEN + "Vanish")) {
-			if(player.hasPotionEffect(PotionEffectType.INVISIBILITY)) {
-				player.sendMessage(ChatColor.RED + "Vous avez désactivé la Vanish");
-				player.removePotionEffect(PotionEffectType.INVISIBILITY);
-			}
-			else {
-				player.sendMessage(ChatColor.GREEN + "Vous avez activé la Vanish");
-				player.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, Integer.MAX_VALUE, 1));
-			}
-		}
-		if(item.getItemMeta().getDisplayName().equals(ChatColor.GOLD + "Tp")) {
-			openTpInventory(player);
-		}
-		if(item.getItemMeta().getDisplayName().equals(ChatColor.stripColor("Warn")) && action == Action.RIGHT_CLICK_AIR || action == Action.RIGHT_CLICK_BLOCK) {
-			openWarnInventory(player);
-		}
-	}
+    
+    // Map pour stocker le joueur sélectionné
+    private static Player selectedPlayer;
 
-	private void openWarnInventory(Player player) {
-		// Créer un inventaire de 54 slots
+    @EventHandler
+    private void OnInteract(PlayerInteractEvent event) {
+        ItemStack item = event.getItem();
+        Player player = event.getPlayer();
+        Action action = event.getAction();
+        if(item.getItemMeta().getDisplayName().equals(ChatColor.GREEN + "Vanish")) {
+            if(player.hasPotionEffect(PotionEffectType.INVISIBILITY)) {
+                player.sendMessage(ChatColor.RED + "Vous avez désactivé la Vanish");
+                player.removePotionEffect(PotionEffectType.INVISIBILITY);
+            }
+            else {
+                player.sendMessage(ChatColor.GREEN + "Vous avez activé la Vanish");
+                player.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, Integer.MAX_VALUE, 1));
+            }
+        }
+        if(item.getItemMeta().getDisplayName().equals(ChatColor.GOLD + "Tp")) {
+            openTpInventory(player);
+        }
+        if(item.getItemMeta().getDisplayName().equals(ChatColor.stripColor("Warn")) && (action == Action.RIGHT_CLICK_AIR || action == Action.RIGHT_CLICK_BLOCK)) {
+            openWarnInventory(player);
+        }
+    }
+
+    private void openWarnInventory(Player player) {
+        // Créer un inventaire de 54 slots
         Inventory inventory = Bukkit.createInventory(null, 54, ChatColor.GREEN + "Sélectionner un joueur");
 
         // Récupérer tous les joueurs en ligne
@@ -65,10 +67,10 @@ public class ModItemListener implements Listener {
         }
         // Ouvrir l'inventaire pour le joueur
         player.openInventory(inventory);
-	}
+    }
 
-	private void openTpInventory(Player player) {
-		// Créer un inventaire de 54 slots
+    private void openTpInventory(Player player) {
+        // Créer un inventaire de 36 slots
         Inventory inventory = Bukkit.createInventory(null, 36, ChatColor.GREEN + "Se téléporter à un joueur");
 
         // Récupérer tous les joueurs en ligne
@@ -89,67 +91,71 @@ public class ModItemListener implements Listener {
         // Ouvrir l'inventaire pour le joueur
         player.openInventory(inventory);
     }
-	
-	@EventHandler
-	private void OnInventoryClick(InventoryClickEvent event) {
-		Player clickedPlayer = null;
-		Inventory inventory = event.getInventory();
-		if(inventory.getName().equals(ChatColor.GREEN + "Se téléporter à un joueur")) {
-			event.setCancelled(true);
-			Player player = (Player) event.getWhoClicked();
-			ItemStack item = event.getCurrentItem();
-			if(item.getType() == Material.SKULL) {
-				String name = item.getItemMeta().getDisplayName();
-				clickedPlayer = Bukkit.getPlayer(name);
-				player.teleport(clickedPlayer);
-				player.sendMessage(ChatColor.GREEN + "Vous vous êtes Tp à " + name);
-			}
-		}
-		if(inventory.getName().equals(ChatColor.GREEN + "Sélectionner un joueur")) {
-			event.setCancelled(true);
-			Player player = (Player) event.getWhoClicked();
-			ItemStack item = event.getCurrentItem();
-			if(item.getType() == Material.SKULL) {
-				String name = item.getItemMeta().getDisplayName();
-				clickedPlayer = Bukkit.getPlayer(name);
-				openSanctionInventory(player, clickedPlayer);
-			}
-		}
-		if(inventory.getName().equals(ChatColor.RED + "Sanction")) {
-			Player player = (Player) event.getWhoClicked();
-			ItemStack item = event.getCurrentItem();
-			OnSanctionClick(player, item, clickedPlayer);
-		}
-	}
+    
+    @EventHandler
+    private void OnInventoryClick(InventoryClickEvent event) {
+        Inventory inventory = event.getInventory();
+        if(inventory.getName().equals(ChatColor.GREEN + "Se téléporter à un joueur")) {
+            event.setCancelled(true);
+            Player player = (Player) event.getWhoClicked();
+            ItemStack item = event.getCurrentItem();
+            if(item.getType() == Material.SKULL) {
+                String name = item.getItemMeta().getDisplayName();
+                Player clickedPlayer = Bukkit.getPlayer(name);
+                player.teleport(clickedPlayer);
+                player.sendMessage(ChatColor.GREEN + "Vous vous êtes Tp à " + name);
+            }
+        }
+        if(inventory.getName().equals(ChatColor.GREEN + "Sélectionner un joueur")) {
+            event.setCancelled(true);
+            Player player = (Player) event.getWhoClicked();
+            ItemStack item = event.getCurrentItem();
+            if(item.getType() == Material.SKULL) {
+                String name = item.getItemMeta().getDisplayName();
+                selectedPlayer = Bukkit.getPlayer(name); // Stocker le joueur sélectionné
+                openSanctionInventory(player);
+            }
+        }
+        if(inventory.getName().equals(ChatColor.RED + "Sanction")) {
+            event.setCancelled(true);
+            Player player = (Player) event.getWhoClicked();
+            ItemStack item = event.getCurrentItem();
+            if(item != null && item.getType() == Material.PAPER) {
+                String sanctionMessage = "";
+                if(item.getItemMeta().getDisplayName().equals("Non respect des groupes")) {
+                    sanctionMessage = "Vous avez été sanctionné pour non respect des groupes.";
+                } else if(item.getItemMeta().getDisplayName().equals("Sanglier")) {
+                    sanctionMessage = "Vous avez été sanctionné pour comportement de sanglier.";
+                }
+                if(selectedPlayer != null) {
+                    selectedPlayer.sendMessage(ChatColor.RED + sanctionMessage);
+                    player.sendMessage(ChatColor.GREEN + "Message envoyé à " + selectedPlayer.getName());
+                } else {
+                    player.sendMessage(ChatColor.RED + "Aucun joueur sélectionné !");
+                }
+            }
+        }
+    }
 
-	private void openSanctionInventory(Player player, Player clickedPlayer) {
-		Inventory inventory =  Bukkit.createInventory(null, 36, ChatColor.RED + "Sanction");
-		
-		ItemStack grp = new ItemStack(Material.PAPER);
-		ItemMeta grp_meta = grp.getItemMeta();
-		if(grp_meta != null) {
-			grp_meta.setDisplayName("Non respect des groupes");
-			grp.setItemMeta(grp_meta);
-		}
-		inventory.setItem(0, grp);
-		
-		ItemStack sanglier = new ItemStack(Material.PAPER);
-		ItemMeta sanglier_meta = sanglier.getItemMeta();
-		if(sanglier_meta != null) {
-			sanglier_meta.setDisplayName("Sanglier");
-			sanglier.setItemMeta(sanglier_meta);
-		}
-		inventory.setItem(1, sanglier);
-		
-		player.openInventory(inventory);
-	}
-	
-	private void OnSanctionClick(Player player, ItemStack item, Player clickedPlayer) {
-		if(item.getItemMeta().getDisplayName().equals("Non respect des groupes")) {
-			clickedPlayer.sendMessage(ChatColor.RED + "Vous avez été averti pour le non respect des groupes par le modérateur : " + player.getName());
-		}
-		if(item.getItemMeta().getDisplayName().equals("Sanglier")) {
-			clickedPlayer.sendMessage(ChatColor.RED + "Vous avez été averti pour un sanglier par le modérateur : " + player.getName());
-		}
-	}
+    private void openSanctionInventory(Player player) {
+        Inventory inventory = Bukkit.createInventory(null, 36, ChatColor.RED + "Sanction");
+        
+        ItemStack grp = new ItemStack(Material.PAPER);
+        ItemMeta grp_meta = grp.getItemMeta();
+        if(grp_meta != null) {
+            grp_meta.setDisplayName("Non respect des groupes");
+            grp.setItemMeta(grp_meta);
+        }
+        inventory.setItem(0, grp);
+        
+        ItemStack sanglier = new ItemStack(Material.PAPER);
+        ItemMeta sanglier_meta = sanglier.getItemMeta();
+        if(sanglier_meta != null) {
+            sanglier_meta.setDisplayName("Sanglier");
+            sanglier.setItemMeta(sanglier_meta);
+        }
+        inventory.setItem(1, sanglier);
+        
+        player.openInventory(inventory);
+    }
 }
