@@ -78,7 +78,7 @@ public class UhcGame {
 		                assignedRoles.add(assignedRole);
 		                roleManager.assignRole(player, assignedRole);
 					}
-				}.runTaskLater(UhcAPI.getInstance(), 20*60);
+				}.runTaskLater(UhcAPI.getInstance(), 20 * 1200);
 
             }
             

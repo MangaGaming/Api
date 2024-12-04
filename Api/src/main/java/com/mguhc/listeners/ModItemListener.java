@@ -28,7 +28,7 @@ public class ModItemListener implements Listener {
         ItemStack item = event.getItem();
         Player player = event.getPlayer();
         Action action = event.getAction();
-        if(item == null || !item.hasItemMeta() || !item.getItemMeta().hasDisplayName()) {
+        if(item == null || !item.hasItemMeta() || item.getItemMeta() == null) {
         	return;
         }
         if(item.getItemMeta().getDisplayName().equals(ChatColor.GREEN + "Vanish")) {

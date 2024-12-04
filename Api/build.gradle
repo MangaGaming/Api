@@ -1,23 +1,45 @@
 plugins {
     id 'java'
+    id 'maven-publish'
 }
 
-group 'com.mguhc'
-version '1.0-SNAPSHOT'
+group = 'com.mangagaming'
+version = '1.0.1'
 
 repositories {
     maven { url = 'https://maven.enginehub.org/repo/' }
+    maven { url = 'https://maven.elmakers.com/repository/' } // Ajout du dépôt correct
     mavenCentral()
 }
 
 dependencies {
-    compileOnly 'org.spigotmc:spigot-api:1.8.8-R0.1-SNAPSHOT' // Assurez-vous que cette version est correcte
+    compileOnly 'org.spigotmc:spigot-api:1.8.8-R0.1-SNAPSHOT'
+    compileOnly 'net.md-5:bungeecord-chat:1.8-SNAPSHOT' // La dépendance qui posait problème
     compileOnly 'net.luckperms:api:5.4'
-	compileOnly 'com.sk89q.worldedit:worldedit-bukkit:6.0.0-SNAPSHOT'
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+            groupId = 'com.mangagaming' // Correspond au dépôt
+            artifactId = 'Api'         // Nom de votre artefact (identique au dépôt)
+            version = '1.0.0'          // Nouvelle version
+        }
+    }
+    repositories {
+        maven {
+            name = "GitHubPackages"
+	url = uri("https://maven.pkg.github.com/MangaGaming/Api")
+            credentials {
+                username = project.findProperty("gpr.user") ?: System.getenv("MangaGaming")
+                password = project.findProperty("gpr.key") ?: System.getenv("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")
+            }
+        }
+    }
 }
 
 jar {
-    // Configuration du nom du fichier JAR
     archiveBaseName.set('Api')
 }
 
