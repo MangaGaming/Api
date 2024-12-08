@@ -412,6 +412,7 @@ public class PlayerListener implements Listener {
 	
 	@EventHandler
 	private void onModInventoryClick(InventoryClickEvent event) {
+		PlayerManager playerManager = UhcAPI.getInstance().getPlayerManager();
 	    if (event.getView().getTitle().equals(ChatColor.BLUE + "Sélectionner les Modérateurs")) {
 	        event.setCancelled(true); // Annuler l'événement pour éviter de déplacer les items
 
@@ -432,14 +433,14 @@ public class PlayerListener implements Listener {
 	                        // Retirer la permission api.mod
 	                        user.data().remove(Node.builder("api.mod").build());
 	                        luckPerms.getUserManager().saveUser (user); // Sauvegarder l'utilisateur
-
+	                        playerManager.getPlayers().remove(selectedPlayer, playerManager.getPlayer(selectedPlayer));
 	                        player.sendMessage(ChatColor.RED + selectedPlayer.getName() + " n'est plus Mod.");
 	                        selectedPlayer.sendMessage(ChatColor.RED + "Vous avez été retiré du statut de Mod.");
 	                    } else {
 	                        // Ajouter la permission api.mod
 	                        user.data().add(Node.builder("api.mod").build());
 	                        luckPerms.getUserManager().saveUser (user); // Sauvegarder l'utilisateur
-
+	                        playerManager.getPlayers().put(selectedPlayer, playerManager.getPlayer(selectedPlayer));
 	                        player.sendMessage(ChatColor.GREEN + selectedPlayer.getName() + " a maintenant le statut de Mod.");
 	                        selectedPlayer.sendMessage(ChatColor.GREEN + "Vous avez été promu au statut de Mod.");
 	                        giveModItems(selectedPlayer);

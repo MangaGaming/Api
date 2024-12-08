@@ -1,8 +1,5 @@
 package com.mguhc;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.bukkit.Bukkit;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -12,7 +9,6 @@ import com.mguhc.listeners.ModItemListener;
 import com.mguhc.listeners.PlayerListener;
 import com.mguhc.player.PlayerManager;
 import com.mguhc.roles.RoleManager;
-import com.mguhc.roles.UhcRole;
 import com.mguhc.scenario.ScenarioManager;
 
 public class UhcAPI extends JavaPlugin implements Listener {
@@ -20,7 +16,6 @@ public class UhcAPI extends JavaPlugin implements Listener {
     private UhcGame uhcgame;
     private RoleManager roleManager;
     private static UhcAPI instance;
-    private HashMap<String, String> roles;
 	private ScenarioManager scenariomanager;
 
     @Override
@@ -35,20 +30,6 @@ public class UhcAPI extends JavaPlugin implements Listener {
         Bukkit.getPluginManager().registerEvents(this, this);
         Bukkit.getPluginManager().registerEvents(new PlayerListener(uhcgame), this);
         Bukkit.getPluginManager().registerEvents(new ModItemListener(), this);
-        
-        roles = new HashMap<>();
-        roles.put("Warrior", "A strong fighter");
-        roles.put("Archer", "A skilled marksman");
-        
-        initialiazeRole();
-    }
-
-    private void initialiazeRole() {
-        for (Map.Entry<String, String> entry : roles.entrySet()) {
-            String role = entry.getKey(); // Le rôle
-            String description = entry.getValue(); // La description
-            roleManager.addRole(new UhcRole(role, description));
-        }
     }
 
     public static UhcAPI getInstance() {

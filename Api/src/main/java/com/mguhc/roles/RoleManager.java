@@ -39,6 +39,17 @@ public class RoleManager {
             player.getPlayer().sendMessage(player.getPlayer().getName() + " a le rôle : " + role.getName());
         }
     }
+    
+    public UhcPlayer getPlayerWithRole(String roleName) {
+        for (Map.Entry<UhcPlayer, UhcRole> entry : playerRoles.entrySet()) {
+            UhcPlayer player = entry.getKey();
+            UhcRole role = entry.getValue();
+            if (role.getName().equalsIgnoreCase(roleName)) {
+                return player; // Retourne le joueur ayant le rôle correspondant
+            }
+        }
+        return null; // Retourne null si aucun joueur n'a le rôle spécifié
+    }
 
     public List<UhcRole> getValidRoles() {
         return validRoles; // Méthode pour récupérer la liste des rôles valides

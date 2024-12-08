@@ -14,30 +14,7 @@ repositories {
 
 dependencies {
     compileOnly 'org.spigotmc:spigot-api:1.8.8-R0.1-SNAPSHOT'
-    compileOnly 'net.md-5:bungeecord-chat:1.8-SNAPSHOT'
     compileOnly 'net.luckperms:api:5.4'
-}
-
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            from components.java
-            groupId = 'com.mangagaming.api'
-            artifactId = 'Api'
-            version = '1.0.1' // Assurez-vous que cette version est mise à jour si nécessaire
-        }
-    }
-    repositories {
-        maven {
-            name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/MangaGaming/Api") // URL correcte pour GitHub Packages
-            credentials {
-                // Utilisez des variables d'environnement pour sécuriser vos credentials
-                username = project.findProperty("gpr.user") ?: System.getenv("GITHUB_ACTOR")
-                password = project.findProperty("gpr.key") ?: System.getenv("GITHUB_TOKEN")
-            }
-        }
-    }
 }
 
 jar {

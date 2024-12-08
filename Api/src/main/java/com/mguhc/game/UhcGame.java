@@ -14,6 +14,7 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import com.mguhc.UhcAPI;
+import com.mguhc.events.RoleGiveEvent;
 import com.mguhc.events.UhcStartEvent;
 import com.mguhc.player.UhcPlayer;
 import com.mguhc.roles.RoleManager;
@@ -67,16 +68,15 @@ public class UhcGame {
             List<UhcRole> assignedRoles = new ArrayList<>(); // Pour suivre les rôles assignés
             if(!ismettup) {
             	new BukkitRunnable() {
-					
 					@Override
 					public void run() {
-		                // Assigner un rôle aléatoire parmi les rôles valides
 		                do {
 		                    assignedRole = activeRoles.get((int) (Math.random() * activeRoles.size()));
 		                } while (assignedRoles.contains(assignedRole)); // Éviter les doublons
 
 		                assignedRoles.add(assignedRole);
 		                roleManager.assignRole(player, assignedRole);
+		                Bukkit.getPluginManager().callEvent(new RoleGiveEvent());
 					}
 				}.runTaskLater(UhcAPI.getInstance(), 20 * 1200);
 
@@ -90,6 +90,7 @@ public class UhcGame {
 
                 assignedRoles.add(assignedRole);
                 roleManager.assignRole(player, assignedRole);
+                Bukkit.getPluginManager().callEvent(new RoleGiveEvent());
             }
         }
         // Démarrer le timer pour le temps de jeu
